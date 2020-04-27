@@ -1,13 +1,16 @@
+## Title: vars
+## Notes: Manages CVar Data
+## X-Category: System
+
 ## Author: jadissa
 ## X-Realm: Emerald Dream/Grobbulus
 ## X-Website: https://github.com/jadissa/vars
+## X-License: All rights reserved
+## X-Curse-Project-ID: 379096
 
 ## DefaultState: enabled
 ## SavedVariables: persistence
 
-## Title: vars
-## Notes: Manages CVar Data
-## X-Category: System
 # /run print((select(4, GetBuildInfo())));
 
 #@retail@
@@ -16,9 +19,6 @@
 #@non-retail@
 # ## Interface: 11304
 #@end-non-retail@
-
-## X-License: All rights reserved
-## X-Curse-Project-ID: 379096
 
 # Includes
 libs\AceDB-3.0\AceDB-3.0.xml
