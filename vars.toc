@@ -1,0 +1,34 @@
+## Author: jadissa
+## X-Realm: Emerald Dream/Grobbulus
+## X-Website: https://github.com/jadissa/vars
+
+## DefaultState: enabled
+## SavedVariables: persistence
+
+## Title: vars
+## Notes: Manages CVar Data
+## X-Category: System
+# /run print((select(4, GetBuildInfo())));
+
+#@retail@
+## Interface: 80300
+#@end-retail@
+#@non-retail@
+# ## Interface: 11304
+#@end-non-retail@
+
+## X-License: All rights reserved
+## X-Curse-Project-ID: 379096
+
+# Includes
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\utility\utility.lua
+
+# boot
+vars.lua
+tracked.lua
+frames.lua
+ui.lua
