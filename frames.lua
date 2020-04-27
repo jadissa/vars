@@ -558,9 +558,6 @@ end
 -- returns void
 function frames:OnEnable( )
 
-  if vars[ 'current' ] == false then
-    return
-  end
   self:init( )
-
+  
 end

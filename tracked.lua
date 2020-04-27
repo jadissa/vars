@@ -270,9 +270,6 @@ end
 -- returns void
 function tracked:OnEnable( )
 
-  if vars[ 'current' ] == false then
-    return
-  end
   self:init( )
-
+  
 end

@@ -68,27 +68,6 @@ function vars:warn( ... )
 
 end
 
--- compare versions
---
--- returns void
-function vars:vtest( systemv, enduserv )
-
-  if enduserv >= systemv then
-    self[ 'current' ] = true
-  else 
-    self:warn( 'is outdated, an update is required to continue using!' )
-    self[ 'current' ] = false
-  end
-
-end
-
--- outdated check
---
--- returns bool
-function vars:isOutDated( )
-  return not self[ 'current' ] == true
-end
-
 -- persistence reference
 --
 -- returns table
@@ -261,17 +240,7 @@ end
 -- returns void
 function vars:OnEnable( )
 
-  local systemv = tonumber( select( 4, GetBuildInfo( ) ) ) or 0
-  local enduserv  = tonumber( GetAddOnMetadata( self:GetName( ), 'Interface' ) )
-
-  self:vtest( systemv, enduserv )
-
-  if self:isOutDated( ) == true then
-    return
-  end
-
   self:Enable( )
-  --self:wipeDB( )
   self:init( )
 
 end
