@@ -3,6 +3,7 @@
 -- Emerald Dream/Grobbulus --------
 
 -- 
+local altered = false
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
 local ui = vars:NewModule( 'ui', 'AceConsole-3.0' )
 local tracked = vars:GetModule( 'tracked' )
@@ -292,6 +293,7 @@ function ui:iterateList( list, c_type )
       end
 
     end
+
   end
 
   local position  = self[ 'menu' ][ 'scroll' ][ 'ScrollBar' ]:GetValue( )
@@ -566,6 +568,9 @@ function ui:updateConfig( f, cvar_category, cvar_name, cvar_value )
 
   local updated, tracked_count, message = tracked:applyConfig( cvar_category )
   self[ 'registry' ][ 'tracked_count' ] = tracked_count
+  if updated then
+    altered = true
+  end
   self:updateStats(
     f, 
     self[ 'registry' ][ 'vars_count' ], 
@@ -645,6 +650,9 @@ function ui:updateStats( f, vars_count, tracked_count, message )
     )
     tracked_count:SetPoint( 'topleft', tracked_label, 'topright', 0, 0 )
     ui[ 'registry'][ 'stats' ][ 'tracked_count' ] = tracked_count
+  end
+  if not altered then
+    return
   end
   self[ 'registry'][ 'stats' ][ 'message' ]:SetText( message )
   self[ 'registry'][ 'stats' ][ 'message' ]:Show( )

@@ -3,7 +3,7 @@
 -- Emerald Dream/Grobbulus --------
 
 -- 
-utility   = LibStub:GetLibrary( 'utility' )
+local utility   = LibStub:GetLibrary( 'utility' )
 local vars  = LibStub( 'AceAddon-3.0' ):NewAddon( 'vars' )
 
 vars[ 'messenger' ] = _G[ 'DEFAULT_CHAT_FRAME' ]
