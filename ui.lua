@@ -9,6 +9,9 @@ local tracked = vars:GetModule( 'tracked' )
 local frame = nil
 local list = { } 
 
+
+local utility = LibStub:GetLibrary( 'utility' )
+
 -- setup addon
 --
 -- returns void
@@ -234,7 +237,18 @@ function ui:iterateList( list, c_type )
           'OnEditFocusLost', function( self )
           self:HighlightText( 0,0 )
         end )
-        
+
+        -- instruct user
+        ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:SetScript(
+          'OnTextChanged', function( self )
+          ui:updateStats( 
+            ui[ 'menu' ], 
+            ui[ 'registry' ][ 'vars_count' ], 
+            ui[ 'registry' ][ 'tracked_count' ], 
+            'value changed. press enter to accept or escape' 
+          )
+        end )
+
         -- handle modification
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:SetScript(
           'OnEnterPressed', function( self )
@@ -257,6 +271,7 @@ function ui:iterateList( list, c_type )
         -- handle edit escape
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:SetScript(
           'OnEscapePressed', function( self )
+          self:SetText( self[ 'v_value' ] )
           self:SetAutoFocus( false )
           self:ClearFocus( )
         end )
@@ -564,6 +579,11 @@ end
 
 -- updates stats
 --
+--  @param notification frame
+--  @param # total vars
+--  @param # changed vars
+--  @param notification text
+--
 -- returns void
 function ui:updateStats( f, vars_count, tracked_count, message )
   
@@ -628,7 +648,8 @@ function ui:updateStats( f, vars_count, tracked_count, message )
   end
   self[ 'registry'][ 'stats' ][ 'message' ]:SetText( message )
   self[ 'registry'][ 'stats' ][ 'message' ]:Show( )
-  C_Timer.After( 7, function( )
+
+  local myTimer = C_Timer.NewTimer( 20, function( )
     self[ 'registry'][ 'stats' ][ 'message' ]:Hide( )
   end )
   self[ 'registry'][ 'stats' ][ 'vars_count' ]:SetText( vars_count )
