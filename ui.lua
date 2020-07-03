@@ -313,6 +313,7 @@ function ui:createMenu( )
   local persistence = tracked:getNameSpace( )
   local frames = vars:GetModule( 'frames' )
   self[ 'menu' ] = self[ 'menu' ] or frames:bootUI( )
+  tinsert( UISpecialFrames, self[ 'menu' ]:GetName( ) )
 
   self[ 'search'] = frames:createFrame( 'EditBox', 'search_box', self[ 'menu' ][ 'controls' ], 'BagSearchBoxTemplate' )
   self[ 'search']:SetSize( 100, 25 )
@@ -382,7 +383,9 @@ function ui:createMenu( )
   vh:SetSize( 50, 20 )
   vh:SetPoint( 'topleft', vv, 'topright', 20, 0 )
 
+  altered = true
   self:iterateList( self:filterList( ) )
+  altered = false
 
   local i   = 1
   local ddl = { }
