@@ -15,7 +15,8 @@
 ## Interface: 80300
 #@end-retail@
 #@non-retail@
-# ## Interface: 11304
+# ## Interface: 11305
+#/run print((select(4, GetBuildInfo())));
 #@end-non-retail@
 
 # Includes
