@@ -1,7 +1,7 @@
  -------------------------------------
 -- vars --------------
 -- Emerald Dream/Grobbulus --------
-
+ 
 -- 
 local altered = false
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
