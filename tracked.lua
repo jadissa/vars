@@ -31,7 +31,12 @@ function tracked:getConfig( )
 
   local persistence = self:getNameSpace( )
 
-  --self:_geParenttDB( ):ResetDB( )
+  -- force initial reset
+  if persistence[ 'was_reset' ] == false then
+    self:_geParenttDB( ):ResetDB( )
+    persistence[ 'was_reset' ] = true
+  end
+
   -- already built
   if persistence[ 'tracked' ] ~= nil then
     return persistence[ 'tracked' ]
@@ -257,6 +262,8 @@ function tracked:OnInitialize( )
   defaults[ 'profile' ][ 'options' ][ 'reloadgx' ]  = true
   defaults[ 'profile' ][ 'options' ][ 'reloadui' ]  = false
   defaults[ 'profile' ][ 'options' ][ 'cloudsync' ] = true
+  defaults[ 'profile' ][ 'db' ] = { }
+  defaults[ 'profile' ][ 'db' ][ 'was_reset' ] = false
 
   self:_geParenttDB( ):RegisterNamespace(
   	self:GetName( ), defaults

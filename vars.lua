@@ -178,13 +178,22 @@ function vars:getConfig( )
       if not failed then
         default = ''
       end
+      -- https://wow.gamepedia.com/API_GetCVarInfo
+      local value, defaultValue, account, character, unknown5, setCvarOnly, readOnly = GetCVarInfo( row['command'] )
       tinsert( persistence[ 'vars' ][ category ], { 
         help            = row['help'],
         command         = row['command'],
         category        = row['category'],
         scriptContents  = row['scriptContents'],
         commandType     = known_types [ row['commandType'] ],
-        info            = GetCVarInfo( row['command'] ),
+        info            = {
+          value = value,
+          defaultValue = defaultValue,
+          account = account,
+          character = character,
+          setCvarOnly = setCvarOnly,
+          readOnly = readOnly
+        },
         tracked         = false,
         value           = default
         --value           = GetCVar( row[ 'command' ] )

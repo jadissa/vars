@@ -12,7 +12,7 @@
 ## SavedVariables: persistence
 
 #@retail@
-## Interface: 80300
+## Interface: 90001
 #@end-retail@
 #@non-retail@
 ## Interface: 11305

@@ -7,9 +7,9 @@ local altered = false
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
 local ui = vars:NewModule( 'ui', 'AceConsole-3.0' )
 local tracked = vars:GetModule( 'tracked' )
+local _, _, _, tocversion = GetBuildInfo( )
 local frame = nil
 local list = { } 
-
 
 local utility = LibStub:GetLibrary( 'utility' )
 
@@ -60,7 +60,7 @@ function ui:dataPreProcess( )
     for i, row in pairs( category_data ) do
       if ui[ 'registry'][ category .. '|' .. row[ 'command' ] ] ~= nil then
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'var' ]:Hide( )
-        ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'state' ]:Hide( )
+        ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'scope' ]:Hide( )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'sep' ]:Hide( )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:Hide( )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:UnregisterAllEvents( )
@@ -169,16 +169,26 @@ function ui:iterateList( list, c_type )
       if type( row ) == 'table' then
 
         if ui[ 'registry'][ category .. '|' .. row[ 'command' ] ] == nil then
-
-          local c = frames:createText( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'command' ] )
+          local theme = 'text'
+          if row[ 'tracked' ] then
+            theme = 'info'
+          end
+          local c = frames:createText( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'command' ], nil, theme )
           c[ 'c_identifier' ] = category .. '|' .. row[ 'command' ]
           c[ 'c_value' ]      = row[ 'command' ]
           c:SetJustifyH( 'right' )
           c:SetSize( 225, 40 )
-
-          local t = frames:createText( self[ 'menu' ][ 'containers' ][ 1 ], tracked:indicate( row[ 'tracked' ] ) )
+          local scope
+          if row[ 'info' ][ 'character' ] then
+            scope = 'character'
+          elseif row[ 'info' ][ 'account' ] then
+            scope = 'account'
+          else
+            scope = 'unknown'
+          end
+          local t = frames:createText( self[ 'menu' ][ 'containers' ][ 1 ], scope, nil, theme )
           t[ 't_identifier' ] = category .. '|' .. row[ 'command' ]
-          t[ 't_value' ]      = tracked:indicate( row[ 'tracked' ] )
+          t[ 't_value' ]      = scope
           ui[ 'registry'][ t[ 't_identifier' ] ] = t
           t:SetJustifyH( 'left' )
           t:SetSize( 50, 40 )
@@ -186,7 +196,7 @@ function ui:iterateList( list, c_type )
           local s = frames:createSeperator( self[ 'menu' ][ 'containers' ][ 1 ] )
           s:SetPoint( 'topleft', c, 'bottomleft', 10, 0, 0 )
 
-          local v = frames:createEditBox( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'value' ] )
+          local v = frames:createEditBox( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'value' ], nil, theme )
           v[ 'v_identifier' ] = category .. '|' .. row[ 'command' ]
           v[ 'v_value' ]      = row[ 'value' ]
           v:SetCursorPosition( 0 )
@@ -198,7 +208,7 @@ function ui:iterateList( list, c_type )
 
           -- @todo: row['help'] may be defined but somehow only whitespace
           --        this should be accounted for
-          local d = frames:createText( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'help' ] or '-' )
+          local d = frames:createText( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'help' ] or '-', nil, theme )
           d[ 'd_identifier' ] = category .. '|' .. row[ 'command' ]
           d[ 'd_value' ]      = row[ 'help' ]
           d:SetJustifyH( 'left' )
@@ -208,7 +218,7 @@ function ui:iterateList( list, c_type )
 
           ui[ 'registry'][ category .. '|' .. row[ 'command' ] ] = { }
           ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'var' ] = c
-          ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'state' ] = t
+          ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'scope' ] = t
           ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'sep' ] = s
           ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ] = v
           ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'help' ] = d
@@ -219,10 +229,10 @@ function ui:iterateList( list, c_type )
           'topleft', self[ 'menu' ][ 'containers' ][ 1 ], 'topleft', positions[ 'x' ], positions[ 'y' ]
         )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'var' ]:Show( )
-        ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'state' ]:SetPoint(
+        ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'scope' ]:SetPoint(
           'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'var' ], 'topright', 15, 0
         )
-        ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'state' ]:Show( )
+        ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'scope' ]:Show( )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'sep' ]:SetPoint(
           'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'var' ], 'bottomleft', 10, 0, 0
         )
@@ -257,14 +267,6 @@ function ui:iterateList( list, c_type )
           local i = gsub( self:GetText(), ' ', '' )
           local c, v = strsplit( '|', self[ 'v_identifier' ] )
           local updated = ui:updateConfig( ui[ 'menu' ], c, v, i )
-          if updated then
-            local dv = vars:getDefault( v )
-            if dv and dv == i then
-              ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'state' ]:SetText( 'default' )
-            elseif dv and dv ~= i then
-              ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'state' ]:SetText( 'modified' )
-            end
-          end
           self:ClearFocus( )
 
         end )
@@ -278,7 +280,7 @@ function ui:iterateList( list, c_type )
         end )
 
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:SetPoint(
-          'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'state' ], 'topright', 20, 0
+          'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'scope' ], 'topright', 20, 0
         )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:Show( )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'help' ]:SetPoint(
@@ -314,12 +316,10 @@ function ui:createMenu( )
   local frames = vars:GetModule( 'frames' )
   self[ 'menu' ] = self[ 'menu' ] or frames:bootUI( )
   tinsert( UISpecialFrames, self[ 'menu' ]:GetName( ) )
-
   self[ 'search'] = frames:createFrame( 'EditBox', 'search_box', self[ 'menu' ][ 'controls' ], 'BagSearchBoxTemplate' )
   self[ 'search']:SetSize( 100, 25 )
-  self[ 'search']:SetBackdropColor( 0, 1, 0, .9 )  
+  --self[ 'search']:SetBackdropColor( 0, 1, 0, .9 )  
   self[ 'search']:SetPoint( 'topleft', self[ 'menu' ][ 'controls' ], 'topleft', 100, -14 )
-
 
   -- GLARING BUG that causes key presses to lose focus
   --self[ 'search']:SetScript( 'OnTextChanged', function( self )
@@ -368,7 +368,7 @@ function ui:createMenu( )
     ui:iterateList( ui:filterList( ) )
   end )
 
-  local vs = frames:createText( self[ 'menu' ][ 'controls' ], 'state' )
+  local vs = frames:createText( self[ 'menu' ][ 'controls' ], 'scope' )
   vs:SetJustifyH( 'left' )
   vs:SetSize( 50, 20 )
   vs:SetPoint( 'topleft', vn, 'topright', 20, 0 )
