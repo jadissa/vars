@@ -6,6 +6,8 @@
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
 local tracked = vars:NewModule( 'tracked' )
 
+local utility = LibStub:GetLibrary( 'utility' )
+
 -- parent persistence reference
 --
 -- returns table
@@ -32,9 +34,10 @@ function tracked:getConfig( )
   local persistence = self:getNameSpace( )
 
   -- force initial reset
-  if persistence[ 'was_reset' ] == false then
+  local v_hash = vars[ 'build_info' ][ 'tocversion' ] .. '01'
+  if persistence[ v_hash ] == false then
     self:_geParenttDB( ):ResetDB( )
-    persistence[ 'was_reset' ] = true
+    persistence[ v_hash ] = true
   end
 
   -- already built
@@ -50,15 +53,6 @@ function tracked:getConfig( )
       if persistence[ 'tracked' ][ category ] == nil then
         persistence[ 'tracked' ][ category ] = { }
       end
-      local failed, default = pcall( GetCVarDefault, row[ 'command' ] )
-      if not failed then
-        default = ''
-      end
-      local default_value = default
-      local current_value = GetCVar( row[ 'command' ] )
-      local evaluation 		= default_value ~= '' and strlower( tostring( current_value ) ) ~= strlower( tostring( default_value ) )
-      if evaluation then
-      end
       tinsert( persistence[ 'tracked' ][ category ], { 
         help            = row[ 'help' ],
         command         = row[ 'command' ],
@@ -66,10 +60,9 @@ function tracked:getConfig( )
         scriptContents  = row[ 'scriptContents' ],
         commandType     = row[ 'commandType' ],
         info            = row[ 'info' ],
-        tracked         = evaluation,
+        tracked         = row[ 'tracked' ],
         value           = current_value,
       } )
-
     end
   end
 

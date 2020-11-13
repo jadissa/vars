@@ -7,7 +7,6 @@ local altered = false
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
 local ui = vars:NewModule( 'ui', 'AceConsole-3.0' )
 local tracked = vars:GetModule( 'tracked' )
-local _, _, _, tocversion = GetBuildInfo( )
 local frame = nil
 local list = { } 
 
@@ -55,6 +54,7 @@ function ui:dataPreProcess( )
   local persistence = tracked:getNameSpace( )
   self[ 'registry' ][ 'tracked_count' ] = 0
   self[ 'registry' ][ 'vars_count' ] = 0
+  self[ 'registry' ][ 'locked_count' ] = 0
 
   for category, category_data in pairs( tracked:getConfig( ) ) do
     for i, row in pairs( category_data ) do
@@ -68,6 +68,9 @@ function ui:dataPreProcess( )
       end
       if row[ 'tracked' ] == true then
         self[ 'registry' ][ 'tracked_count' ] = self[ 'registry' ][ 'tracked_count' ] + 1
+      end
+      if row[ 'info' ][ 'readOnly' ] == true then
+        self[ 'registry' ][ 'locked_count' ]  = self[ 'registry' ][ 'locked_count' ] + 1
       end
       self[ 'registry' ][ 'vars_count' ] = self[ 'registry' ][ 'vars_count' ] + 1
     end
@@ -116,7 +119,7 @@ function ui:filterList( )
         local s     = strlower( row[ 'command' ] )
 
         --[[
-        if s == 'nameplateverticalscale' then
+        if s == 'mousespeed' then
 
           utility:dump( row )
 
@@ -140,6 +143,12 @@ function ui:filterList( )
     for cat, category_data in pairs( tracked:getConfig( ) ) do
       if cat == category then
         for i, row in pairs( category_data ) do
+
+          --[[
+          utility:dump( row['command'] )
+          utility:dump( row['info'] )
+          ]]
+
           if row[ 'command' ] == var_name then
             if t[ category ] == nil then
               t[ category ] = { }
@@ -169,9 +178,13 @@ function ui:iterateList( list, c_type )
       if type( row ) == 'table' then
 
         if ui[ 'registry'][ category .. '|' .. row[ 'command' ] ] == nil then
+          local locked = false
           local theme = 'text'
           if row[ 'tracked' ] then
             theme = 'info'
+          elseif row['info']['readOnly'] then
+            theme = 'error'
+            locked = true
           end
           local c = frames:createText( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'command' ], nil, theme )
           c[ 'c_identifier' ] = category .. '|' .. row[ 'command' ]
@@ -183,6 +196,8 @@ function ui:iterateList( list, c_type )
             scope = 'character'
           elseif row[ 'info' ][ 'account' ] then
             scope = 'account'
+          elseif row['info']['readOnly'] then
+            scope = 'locked'
           else
             scope = 'unknown'
           end
@@ -205,6 +220,9 @@ function ui:iterateList( list, c_type )
           v:SetSize( 50, 10 )
           v:SetAutoFocus( false )
           v:SetFocus( false )
+          if locked == true then
+            v:Disable( )
+          end
 
           -- @todo: row['help'] may be defined but somehow only whitespace
           --        this should be accounted for
@@ -422,8 +440,10 @@ function ui:createMenu( )
   dbwipe:SetSize( 125, 25 )
   dbwipe:SetPoint( 'topleft', self[ 'menu' ][ 'browser' ], 'topleft', 10, -10 )
   local t = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'use this if vars configuration becomes corrupt. your modifications to game settings will persist', 9, 'warn' )
-  t:SetPoint( 'topleft', dbwipe, 'bottomleft', 0, 0 )
-  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 5, 20 )
+
+  -- my_top_left, frame_attaching_to, frame_top_right, 10, 0, 
+  t:SetPoint( 'topleft', dbwipe, 'topright', 10, 0 )
+  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) ) - 20, 20 )
 
   dbwipe:SetScript( 'OnClick', function( self )
     vars:wipeDB( )
@@ -438,10 +458,12 @@ function ui:createMenu( )
 
   local defaults = frames:createButton( self[ 'menu' ][ 'containers' ][ 2 ], 'Reset to Defaults', 'defaults' )
   defaults:SetSize( 125, 25 )
-  defaults:SetPoint( 'topleft', t, 'bottomleft', 0, -10 )
+  defaults:SetPoint( 'topleft', self[ 'menu' ][ 'browser' ], 'topleft', 10, - ( dbwipe:GetHeight( ) + 20 ) )
   local t = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'resets your game configuration back to Blizzard default state', 9, 'warn' )
-  t:SetPoint( 'topleft', defaults, 'bottomleft', 0, 0 )
-  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 5, 20 )
+
+  -- my_top_left, frame_attaching_to, frame_top_right, 10, 0, 
+  t:SetPoint( 'topleft', defaults, 'topright', 10, 0 )
+  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) ) - 20, 20 )
   
   defaults:SetScript( 'OnClick', function( self )
 
@@ -482,12 +504,15 @@ function ui:createMenu( )
 
   end )
 
+  local _, _, _, x, y = defaults:GetPoint( )
   local rlgx = frames:createCheckbox( self[ 'menu' ][ 'containers' ][ 2 ], 'Reload Graphics', 'rlgx' )
   rlgx:SetSize( 25, 25 )
-  rlgx:SetPoint( 'topleft', t, 'bottomleft', 0, -10 )
+
+  -- my_top_left, frame_attaching_to, frame_top_right, 10, 0, 
+  rlgx:SetPoint( 'topleft', defaults, 'bottomleft', 0, -20 )
   local t = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'some settings may only require a reload of your graphics', 9, 'warn' )
   t:SetPoint( 'topleft', rlgx, 'bottomleft', 0, 0 )
-  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 5, 20 )
+  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 20, 20 )
 
   rlgx:SetChecked( persistence[ 'options' ][ 'reloadgx' ] or false )
   rlgx:SetScript( 'OnClick', function( self )
@@ -502,10 +527,12 @@ function ui:createMenu( )
 
   local rlui = frames:createCheckbox( self[ 'menu' ][ 'containers' ][ 2 ], 'Reload UI', 'rlui' )
   rlui:SetSize( 25, 25 )
-  rlui:SetPoint( 'topleft', t, 'bottomleft', 0, -10 )
+
+  -- my_top_left, frame_attaching_to, frame_top_right, 10, 0, 
+  rlui:SetPoint( 'topleft', t, 'topright', 10, ( rlgx:GetHeight( ) ) )
   local t = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'some settings require a full reload of your ui', 9, 'warn' )
   t:SetPoint( 'topleft', rlui, 'bottomleft', 0, 0 )
-  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 5, 20 )
+  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 20, 20 )
 
   rlui:SetChecked( persistence[ 'options' ][ 'reloadui' ] or false )
   rlui:SetScript( 'OnClick', function( self )
@@ -520,10 +547,10 @@ function ui:createMenu( )
 
   local csui = frames:createCheckbox( self[ 'menu' ][ 'containers' ][ 2 ], 'Cloud Sync', 'csui' )
   csui:SetSize( 25, 25 )
-  csui:SetPoint( 'topleft', t, 'bottomleft', 0, -10 )
+  csui:SetPoint( 'topleft', rlgx, 'bottomleft', 0, -20 )
   local t = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'save modifications to Blizzard servers', 9, 'warn' )
   t:SetPoint( 'topleft', csui, 'bottomleft', 0, 0 )
-  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 5, 20 )
+  t:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 20, 20 )
 
   csui:SetChecked( persistence[ 'options' ][ 'cloudsync' ] or false )
   csui:SetScript( 'OnClick', function( self )
@@ -537,10 +564,21 @@ function ui:createMenu( )
     )
   end )
 
-  local info = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'https://wow.gamepedia.com/Console_variables/Complete_list', 9, 'text' )
+  local info = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'Import:', 9, 'text' )
   info:SetSize( 25, 25 )
   info:SetPoint( 'topleft', csui, 'bottomleft', 0, -35 )
-  info:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 5, 20 )
+  info:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 20, 20 )
+
+
+  local alias = frames:createEditBox( self[ 'menu' ][ 'containers' ][ 2 ], 'name of my import', 'alias', 'info' )
+  alias:SetCursorPosition( 0 )
+  --v:SetJustifyH( 'left' )
+  alias:SetJustifyV( 'top' )
+  alias:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) ) - 20 , 10 )
+  alias:SetAutoFocus( false )
+  alias:SetFocus( false )
+  alias:Disable( )
+  alias:SetPoint( 'topleft', info, 'bottomleft', 0, -20 )
 
   return self[ 'menu' ]
 
@@ -633,21 +671,21 @@ function ui:updateStats( f, vars_count, tracked_count, message )
       f, 
       nil, 
       vars[ 'theme' ][ 'font' ][ 'small' ], 
-      'info' 
+      'text' 
     )
     found_count:SetPoint( 'topleft', found_label, 'topright', 0, 0 )
     ui[ 'registry'][ 'stats' ][ 'vars_count' ] = found_count
     
     local tracked_label = frames:createText( 
       f, 
-      'Tracking:', 
+      'Modified:', 
       vars[ 'theme' ][ 'font' ][ 'small' ] 
     )
     tracked_label:SetPoint(
       'topleft', 
       found_label, 
       'topleft', 
-      -( ( found_label:GetWidth( ) + found_label:GetWidth( ) ) + 25 ), 
+      -( ( found_label:GetWidth( ) + found_label:GetWidth( ) ) + 15 ), 
       0 
     )
     local tracked_count = frames:createText( 
@@ -658,6 +696,27 @@ function ui:updateStats( f, vars_count, tracked_count, message )
     )
     tracked_count:SetPoint( 'topleft', tracked_label, 'topright', 0, 0 )
     ui[ 'registry'][ 'stats' ][ 'tracked_count' ] = tracked_count
+    
+    local locked_label = frames:createText( 
+      f, 
+      'Locked:', 
+      vars[ 'theme' ][ 'font' ][ 'small' ]
+    )
+    locked_label:SetPoint(
+      'topleft', 
+      tracked_label, 
+      'topleft', 
+      -( ( tracked_label:GetWidth( ) ) ), 
+      0 
+    )
+    local locked_count = frames:createText( 
+      f, 
+      nil, 
+      vars[ 'theme' ][ 'font' ][ 'small' ], 
+      'error' 
+    )
+    locked_count:SetPoint( 'topleft', locked_label, 'topright', 0, 0 )
+    ui[ 'registry'][ 'stats' ][ 'locked_count' ] = locked_count
   end
   if not altered then
     return
@@ -670,6 +729,7 @@ function ui:updateStats( f, vars_count, tracked_count, message )
   end )
   self[ 'registry'][ 'stats' ][ 'vars_count' ]:SetText( vars_count )
   self[ 'registry'][ 'stats' ][ 'tracked_count' ]:SetText( tracked_count )
+  self[ 'registry'][ 'stats' ][ 'locked_count' ]:SetText( self[ 'registry' ][ 'locked_count' ] )
 
 end
 

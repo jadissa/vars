@@ -5,7 +5,14 @@
 -- 
 local utility   = LibStub:GetLibrary( 'utility' )
 local vars  = LibStub( 'AceAddon-3.0' ):NewAddon( 'vars' )
+local version, build, date, tocversion = GetBuildInfo( )
 
+vars[ 'build_info' ] = {
+  version     = version,
+  build       = build,
+  date        = date,
+  tocversion  = tocversion
+}
 vars[ 'messenger' ] = _G[ 'DEFAULT_CHAT_FRAME' ]
 vars[ 'theme' ] = {
   text = {
@@ -16,6 +23,9 @@ vars[ 'theme' ] = {
   },
   warn = {
     hex = 'ffbf00', 
+  },
+  error = {
+    hex = 'ff2d00',
   },
   font = {
     family = 'Fonts\\FRIZQT__.TTF',
@@ -180,6 +190,12 @@ function vars:getConfig( )
       end
       -- https://wow.gamepedia.com/API_GetCVarInfo
       local value, defaultValue, account, character, unknown5, setCvarOnly, readOnly = GetCVarInfo( row['command'] )
+
+      -- all values from GetCVarInfo are string, so typing and rounding fail
+      local default_value = strlower( tostring( defaultValue ) )
+      local current_value = strlower( tostring( value ) )
+      local evaluation    = default_value ~= '' and current_value ~= default_value
+
       tinsert( persistence[ 'vars' ][ category ], { 
         help            = row['help'],
         command         = row['command'],
@@ -194,9 +210,8 @@ function vars:getConfig( )
           setCvarOnly = setCvarOnly,
           readOnly = readOnly
         },
-        tracked         = false,
+        tracked         = evaluation,
         value           = default
-        --value           = GetCVar( row[ 'command' ] )
       } )
     end
   end
