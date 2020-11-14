@@ -180,7 +180,7 @@ function frames:bootUI( )
   f[ 'scroll' ]:SetPoint( 'topleft', f[ 'browser' ], 'topleft', -25, -2 )
   f[ 'scroll' ]:SetPoint( 'bottomright', f[ 'browser' ], 'bottomright', -25, 2 )
 
-  local tab_names = { { text = 'Mod' }, { text = 'Sys' } }
+  local tab_names = { { text = 'List' }, { text = 'Options' }, { text = 'Imports' } }
   f[ 'containers' ] = self:createTabs( f, tab_names )
 
   f[ 'resizer' ] = self:createFrame( 'Button', 'resize', f )
@@ -337,7 +337,7 @@ function frames:createTabs( f, tab_names )
       vars[ 'theme' ][ 'font' ][ 'normal' ], 
       'info' 
     )
-    font:SetPoint( 'topleft', t, 'topleft', 25, -10 )
+    font:SetPoint( 'center', t, 'center', 0, 0 )
     t:SetID( i )
     _G[ f:GetName( ) .. 'Tab' .. i .. 'Text' ]:SetTextColor( 
       vars[ 'theme' ] ['info' ][ 'r' ], 
@@ -417,7 +417,7 @@ function frames:tabClick( self )
     )
     self:GetParent( )[ 'scroll' ][ 'ScrollBar' ][ 'ScrollDownButton' ]:Enable( )
     self:GetParent( )[ 'scroll' ][ 'ScrollBar' ][ 'ScrollUpButton' ]:Enable( )
-  elseif self:GetID( ) == 2 then
+  else
     self:GetParent( )[ 'controls' ]:Hide( )
     self:GetParent( )[ 'controls' ][ 'background' ]:Hide( )
     self:GetParent( )[ 'controls' ][ 'controlsart' ]:Hide( )

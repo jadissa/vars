@@ -575,20 +575,21 @@ function ui:createMenu( )
   end )
 
   --[[
-  local info = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'Import:', 9, 'text' )
-  info:SetSize( 25, 25 )
-  info:SetPoint( 'topleft', csui, 'bottomleft', 0, -35 )
-  info:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) / 2 ) - 20, 20 )
+  -- import window
+  utility:dump( self[ 'menu' ][ 'containers' ][ 3 ] )
+  local iw = frames:createFrame( 'Frame', 'import_window', self[ 'menu' ][ 'containers' ][ 3 ], nil )
+  iw:SetSize( self[ 'menu' ][ 'containers' ][ 3 ]:GetWidth( ) - 20, self[ 'menu' ][ 'containers' ][ 3 ]:GetHeight( ) - 20 )
+  iw:SetPoint( 'center', self[ 'menu' ][ 'browser' ], 'center'  )
 
+  -- import editor
+  local ie = frames:createEditBox( iw, 'Import String', 'import_editor', nil )
+  ie:SetMultiLine( true )
+  ie[ 'num_lines']  = 30
+  ie:SetSize( iw:GetWidth(),ie[ 'num_lines'] * 14 )
+  ie:SetMaxLetters( 0 )
+  ie:SetPoint( 'center', iw, 'center' )
 
-  local alias = frames:createEditBox( self[ 'menu' ][ 'containers' ][ 2 ], 'name of my import', 'alias', 'info' )
-  alias:SetCursorPosition( 0 )
-  --v:SetJustifyH( 'left' )
-  alias:SetJustifyV( 'top' )
-  alias:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) ) - 20 , 10 )
-  alias:SetAutoFocus( false )
-  alias:Disable( )
-  alias:SetPoint( 'topleft', info, 'bottomleft', 0, -20 )
+  self[ 'menu' ][ 'scroll' ]:SetScrollChild( ie )
   ]]
 
   return self[ 'menu' ]
