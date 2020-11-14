@@ -34,19 +34,19 @@ function tracked:getConfig( )
   local persistence = self:getNameSpace( )
 
   -- force initial reset
-  local v_hash = vars[ 'build_info' ][ 'tocversion' ] .. '01'
-  if persistence[ v_hash ] == false then
-    self:_geParenttDB( ):ResetDB( )
+  local v_hash = vars[ 'build_info' ][ 'tocversion' ] .. '03'
+  if persistence[ v_hash ] == nil then
+    vars:wipeDB( )
     persistence[ v_hash ] = true
   end
 
   -- already built
-  if persistence[ 'tracked' ] ~= nil then
+  if next( persistence[ 'tracked' ] ) ~= nil then
     return persistence[ 'tracked' ]
   end
 
   -- needs building
-  local known_vars  = vars:getConfig( )
+  local known_vars  = vars:buildConfig( )
   persistence[ 'tracked' ] = { }
   for category, category_rows in pairs( known_vars ) do
   	for i, row in pairs( category_rows ) do
@@ -61,7 +61,7 @@ function tracked:getConfig( )
         commandType     = row[ 'commandType' ],
         info            = row[ 'info' ],
         tracked         = row[ 'tracked' ],
-        value           = current_value,
+        value           = row[ 'value' ],
       } )
     end
   end
@@ -243,6 +243,7 @@ function tracked:OnInitialize( )
 
   local defaults = { }
   defaults[ 'profile' ] = { }
+  defaults[ 'profile' ][ 'tracked' ]  = nil
   defaults[ 'profile' ][ 'search' ]   = { }
   defaults[ 'profile' ][ 'options' ]  = { }
   defaults[ 'profile' ][ 'search' ][ 'category_filter' ]  = 'Game'

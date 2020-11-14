@@ -96,13 +96,13 @@ end
 --
 -- returns table
 function vars:wipeDB( )
-  return self:getDB( ):ResetDB( )
+  return self:getDB( ):ResetDB( 'Default' )
 end
 
--- types reference
+-- categories hash
 --
 -- returns table
-function vars:getTypes( )
+function vars:getCategories( )
   
   return {
     [ '0' ] = 'Debug',  [ '1' ] = 'Graphics', [ '2' ] = 'Console', 
@@ -164,29 +164,23 @@ function vars:getProtected( ptype )
 
 end
 
--- set/get configuration
--- if it needs to be modified, a copy should be made
--- keep this copy pristine and in original condition
+-- initialize config
 --
 -- returns table
-function vars:getConfig( )
+function vars:buildConfig( )
 
   local persistence = self:getNameSpace( )
   if persistence[ 'vars' ] ~= nil then
     return persistence[ 'vars' ]
   end
   local known_vars      = C_Console.GetAllCommands( )
-  local known_types     = self:getTypes( )
+  local known_types     = self:getCategories( )
   persistence[ 'vars' ] = { }
   for i, row in pairs( known_vars ) do
     if( tonumber( row[ 'commandType' ] ) == 0 ) then
       local category  = known_types[ tostring( row[ 'category' ] ) ]
       if persistence[ 'vars' ][ category ] == nil then
         persistence[ 'vars' ][ category ] = { }
-      end
-      local failed, default = pcall( GetCVarDefault, row[ 'command' ] )
-      if not failed then
-        default = ''
       end
       -- https://wow.gamepedia.com/API_GetCVarInfo
       local value, defaultValue, account, character, unknown5, setCvarOnly, readOnly = GetCVarInfo( row['command'] )
@@ -211,7 +205,7 @@ function vars:getConfig( )
           readOnly = readOnly
         },
         tracked         = evaluation,
-        value           = default
+        value           = value
       } )
     end
   end
@@ -223,7 +217,7 @@ end
 --
 -- returns void
 function vars:init( )
-  local known_vars = self:getConfig( )
+  local known_vars = self:buildConfig( )
 end
 
 -- gets blizzard default value

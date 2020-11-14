@@ -6,6 +6,8 @@
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
 local frames = vars:NewModule( 'frames', 'AceHook-3.0', 'AceEvent-3.0' )
 
+local utility = LibStub:GetLibrary( 'utility' )
+
 -- parent persistence reference
 --
 -- returns table
@@ -500,6 +502,7 @@ function frames:dropdownInitialize( frame, list_items, calling_instance )
     b[ 'justifyH' ]      = nil
     b[ 'colorCode' ]     = '|cff' .. vars[ 'theme' ][ 'text' ][ 'hex' ]
     b[ 'func' ]          = function( self )
+
     --CreateFont
     --[[
     local font = CreateFont( vars[ 'theme' ][ 'font' ][ 'family' ] );
