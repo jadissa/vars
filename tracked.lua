@@ -36,12 +36,12 @@ function tracked:getConfig( )
   -- force initial reset
   local v_hash = vars[ 'build_info' ][ 'tocversion' ] .. '03'
   if persistence[ v_hash ] == nil then
-    vars:wipeDB( )
+    --vars:wipeDB( )
     persistence[ v_hash ] = true
   end
 
   -- already built
-  if next( persistence[ 'tracked' ] ) ~= nil then
+  if persistence[ 'tracked' ] ~= nil and next( persistence[ 'tracked' ] ) ~= nil then
     return persistence[ 'tracked' ]
   end
 
