@@ -206,7 +206,7 @@ function ui:iterateList( list, c_type )
           t[ 't_value' ]      = scope
           ui[ 'registry'][ t[ 't_identifier' ] ] = t
           t:SetJustifyH( 'left' )
-          t:SetSize( 50, 40 )
+          t:SetSize( 55, 40 )
 
           local s = frames:createSeperator( self[ 'menu' ][ 'containers' ][ 1 ] )
           s:SetPoint( 'topleft', c, 'bottomleft', 10, 0, 0 )
@@ -214,12 +214,11 @@ function ui:iterateList( list, c_type )
           local v = frames:createEditBox( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'value' ], nil, theme )
           v[ 'v_identifier' ] = category .. '|' .. row[ 'command' ]
           v[ 'v_value' ]      = row[ 'value' ]
-          v:SetCursorPosition( 0 )
-          --v:SetJustifyH( 'left' )
+          --v:SetCursorPosition( 0 )
+          v:SetJustifyH( 'left' )
           v:SetJustifyV( 'top' )
-          v:SetSize( 50, 10 )
+          v:SetSize( 25, 10 )
           v:SetAutoFocus( false )
-          v:SetFocus( false )
           if locked == true then
             v:Disable( )
           end
@@ -298,11 +297,11 @@ function ui:iterateList( list, c_type )
         end )
 
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:SetPoint(
-          'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'scope' ], 'topright', 20, 0
+          'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'scope' ], 'topright', 0, 0
         )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:Show( )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'help' ]:SetPoint(
-          'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ], 'topright', 20, 0
+          'topleft', ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ], 'topright', 0, 0
         )
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'help' ]:Show( )
 
@@ -340,21 +339,32 @@ function ui:createMenu( )
   self[ 'search']:SetPoint( 'topleft', self[ 'menu' ][ 'controls' ], 'topleft', 100, -14 )
 
   -- GLARING BUG that causes key presses to lose focus
-  --self[ 'search']:SetScript( 'OnTextChanged', function( self )
-    self[ 'search']:SetScript( 'OnEnterPressed', function( self )
-    local input_text = self:GetText( )
-    if( string.len( input_text ) >= 3 ) then
-      persistence[ 'search' ][ 'text' ] = strlower( input_text )
+  self[ 'search']:SetScript( 'OnTextChanged', function( sbutton )
+    if( strlen( sbutton:GetText( ) ) >= 3 ) then
+      persistence[ 'search' ][ 'text' ] = strlower( sbutton:GetText( ) )
       ui:iterateList( ui:filterList( ), 'search' )
+    elseif( strlen( sbutton:GetText( ) ) == 0 ) then
       persistence[ 'search' ][ 'text' ] = nil
+      self:iterateList( self:filterList( ) )
     end
   end )
-
-  self[ 'search' ]:SetScript( 'OnEditFocusLost', function( self )
-    self[ 'Instructions' ]:Show( )
-    --self:SetAutoFocus( false )
-    self:SetText( '' )
+  self[ 'search']:SetScript( 'OnEnterPressed', function( self )
+    return
+  end )
+  self[ 'search'].clearButton:Hide( )
+  self[ 'search'].clearButton:SetScript( 'OnClick', function( sbutton )
+    sbutton:SetText( '' )
+    self:iterateList( self:filterList( ) )
     persistence[ 'search' ][ 'text' ] = nil
+  end )
+
+  self[ 'search' ]:SetScript( 'OnEditFocusLost', function( sbutton )
+    if( strlen( sbutton:GetText( ) ) == 0 ) then
+      sbutton[ 'Instructions' ]:Show( )
+    end
+    --self:SetAutoFocus( false )
+    --self:SetText( '' )
+    --persistence[ 'search' ][ 'text' ] = nil
     --[[C_Timer.After( 1, function( )
       ui:iterateList( ui:filterList( ) )
     end )]]
@@ -391,15 +401,15 @@ function ui:createMenu( )
   vs:SetSize( 50, 20 )
   vs:SetPoint( 'topleft', vn, 'topright', 20, 0 )
 
-  local vv = frames:createText( self[ 'menu' ][ 'controls' ], 'value' )
+  local vv = frames:createText( self[ 'menu' ][ 'controls' ], 'v' )
   vv:SetJustifyH( 'left' )
-  vv:SetSize( 50, 20 )
-  vv:SetPoint( 'topleft', vs, 'topright', 20, 0 )
+  vv:SetSize( 25, 20 )
+  vv:SetPoint( 'topleft', vs, 'topright', 5, 0 )
 
  local vh = frames:createText( self[ 'menu' ][ 'controls' ], 'help' )
   vh:SetJustifyH( 'left' )
   vh:SetSize( 50, 20 )
-  vh:SetPoint( 'topleft', vv, 'topright', 20, 0 )
+  vh:SetPoint( 'topleft', vv, 'topright', 0, 0 )
 
   altered = true
   self:iterateList( self:filterList( ) )
@@ -577,7 +587,6 @@ function ui:createMenu( )
   alias:SetJustifyV( 'top' )
   alias:SetSize( ( self[ 'menu' ][ 'containers' ][ 2 ]:GetWidth( ) ) - 20 , 10 )
   alias:SetAutoFocus( false )
-  alias:SetFocus( false )
   alias:Disable( )
   alias:SetPoint( 'topleft', info, 'bottomleft', 0, -20 )
   ]]
