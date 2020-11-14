@@ -564,6 +564,7 @@ function ui:createMenu( )
     )
   end )
 
+  --[[
   local info = frames:createText( self[ 'menu' ][ 'containers' ][ 2 ], 'Import:', 9, 'text' )
   info:SetSize( 25, 25 )
   info:SetPoint( 'topleft', csui, 'bottomleft', 0, -35 )
@@ -579,6 +580,7 @@ function ui:createMenu( )
   alias:SetFocus( false )
   alias:Disable( )
   alias:SetPoint( 'topleft', info, 'bottomleft', 0, -20 )
+  ]]
 
   return self[ 'menu' ]
 

@@ -4,7 +4,7 @@
 
 -- 
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
-local frames = vars:NewModule( 'frames', 'AceHook-3.0', 'AceEvent-3.0' )
+local frames = vars:NewModule( 'frames', 'AceHook-3.0' )
 
 local utility = LibStub:GetLibrary( 'utility' )
 
@@ -463,7 +463,7 @@ end
 --
 -- returns table
 function frames:createDropDown( calling_instance, name, parent, list )
-  
+
   local f = self:createFrame(
     'Frame', name, parent, 'UIDropDownMenuTemplate'
   )
