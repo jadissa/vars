@@ -34,7 +34,7 @@ function tracked:getConfig( )
   local persistence = self:getNameSpace( )
 
   -- force initial reset
-  local v_hash = vars[ 'build_info' ][ 'tocversion' ] .. '03'
+  local v_hash = vars[ 'build_info' ][ 'tocversion' ] .. '05'
   if persistence[ v_hash ] == nil then
     --vars:wipeDB( )
     persistence[ v_hash ] = true
@@ -140,10 +140,14 @@ end
 -- returns bool, number, string
 function tracked:applyConfig( category )
 
+  local is_tracked    = false
   local tracked_count = 0
   local message       = ''
   local updated       = false
   local known_vars    = self:getConfig( )
+  local can_update    = true
+
+  -- determine how many are modified already
   for cat, rows in pairs( known_vars ) do
     if type( rows ) == 'table' then
       for i, row in pairs( rows ) do
@@ -154,41 +158,93 @@ function tracked:applyConfig( category )
     end
   end
 
+  -- initialize changes
+  local changeset = {
+    current_value = nil,
+    default_value = nil,
+    new_value = nil,
+    index = nil,
+  }
+
+  -- file changes
   for i, pending in pairs( tracked[ 'queue' ] ) do
     for category, data in pairs( pending ) do
       for j, setting in pairs( data ) do
         for index, value in pairs( setting ) do
           if known_vars[ category ][ j ] then
-            local current_value = GetCVar( index )
-            if strlower( tostring( current_value ) ) ~= strlower( tostring( value ) ) then
-              message = index .. ' updated from: ' .. current_value .. ' to: ' .. tostring( value )
-              local list = vars:getProtected( 'combat' )
-              if tContains( list, index ) ~= false and InCombatLockdown( ) == true then
-                message = index .. ' can only be modified outside of combat'
-              else
-                SetCVar( index, value )
-                if GetCVar( index ) ~= value then
-                  message = 'failed'
-                else
-                  local default_value = GetCVarDefault( index )
-                  local evaluation = strlower( tostring( value ) ) ~= strlower( tostring( default_value ) )
-                  known_vars[ category ][ j ][ 'tracked' ] = evaluation
-                  if not evaluation then
-                    tracked_count = tracked_count - 1
-                  end
-                  updated = true
-                end
-              end
-            else
-              message = 'this setting is already applied'
-            end
-            tracked[ 'queue' ] = { }
+            changeset[ 'current_value' ] = tostring( GetCVar( index ) )
+            changeset[ 'new_value' ] = tostring( value )
+            changeset[ 'index' ] = tostring( index )
           end
         end
       end
     end 
   end
-  
+
+  -- do not allow empty changes
+  for index, v in pairs( changeset ) do
+    if changeset[ index ] == nil then
+      can_update = false
+    end
+  end
+
+  if not can_update then
+    message = 'cannot update'
+    vars:warn( message )
+    return false, tracked_count, message
+  end
+
+  -- do not apply changes already applied
+  if strlower( changeset[ 'current_value' ] ) == strlower( changeset[ 'new_value' ] ) then
+    message = 'already applied'
+    vars:warn( message )
+    return false, tracked_count, message
+  end
+
+  -- do not apply combat protected during combat
+  if tContains( vars:getProtected( 'combat' ), changeset[ 'index' ] ) ~= false and InCombatLockdown( ) == true then
+    message = changeset[ 'index' ] .. ' can only be modified outside of combat'
+    vars:warn( message )
+    return false, tracked_count, message
+  end
+
+  -- apply changes
+  vars:notify( 'updating ' .. changeset[ 'index' ] .. '...' )
+  SetCVar( changeset[ 'index' ], changeset[ 'new_value' ] )
+
+  -- check for error
+  if GetCVar( changeset[ 'index' ] ) ~= changeset[ 'new_value' ] then
+    message = 'failed'
+    vars:error( message )
+    return false, tracked_count, message
+  end
+
+  -- maintenance
+  updated = true
+  local new_config = { }
+  for cat, rows in pairs( self:getConfig( ) ) do
+    if category == cat then
+      for i, row in pairs( rows ) do
+        if row[ 'command' ] == changeset[ 'index' ] then
+          new_config[ category ] = { }
+          new_config[ category ][ i ] = { }
+          new_config[ category ][ i ][ changeset[ 'index' ] ] = changeset[ 'new_value' ]
+          is_tracked = row[ 'tracked' ]
+          tracked:refreshConfig( new_config )
+        end
+      end
+    end
+  end
+  changeset[ 'default_value' ] = GetCVarDefault( changeset[ 'index' ] )
+
+  local new_value_not_default = strlower( changeset[ 'new_value' ] ) ~= strlower( tostring( changeset[ 'default_value' ] ) )
+  if new_value_not_default == true and is_tracked == false then
+    tracked_count = tracked_count + 1
+  elseif new_value_not_default == false and is_tracked == true then
+    tracked_count = tracked_count - 1
+  end
+  vars:notify( 'updated from: ' .. changeset[ 'current_value' ] .. ' to: ' .. changeset[ 'new_value' ] )
+  tracked[ 'queue' ] = { }
   local persistence = self:getNameSpace( )
   if persistence[ 'options' ][ 'reloadgx' ] and updated then 
   	RestartGx( )

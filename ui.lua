@@ -16,22 +16,9 @@ local utility = LibStub:GetLibrary( 'utility' )
 --
 -- returns void
 function ui:init( )
-  self:RegisterChatCommand( 'vars', 'processInput' )
+  self:RegisterChatCommand( 'vc', 'toggle' )
+  vars:notify( 'activated. /vc to use')
   self[ 'registry'] = { }
-end
-
--- process slash commands
---
--- returns void
-function ui:processInput( input )
-  
-  input = gsub( input, ' ', '' )
-  if input == 'config' then
-  	self:toggle( )
-  else
-  	vars:warn( 'invalid input' )
-  end
-
 end
 
 -- toggle slash handler
@@ -266,6 +253,7 @@ function ui:iterateList( list, c_type )
           self:HighlightText( 0,0 )
         end )
 
+        --[[
         -- instruct user
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:SetScript(
           'OnTextChanged', function( self )
@@ -276,6 +264,7 @@ function ui:iterateList( list, c_type )
             'value changed. press enter to accept or escape' 
           )
         end )
+        ]]
 
         -- handle modification
         ui[ 'registry'][ category .. '|' .. row[ 'command' ] ][ 'edit' ]:SetScript(
@@ -733,12 +722,7 @@ function ui:updateStats( f, vars_count, tracked_count, message )
   if not altered then
     return
   end
-  self[ 'registry'][ 'stats' ][ 'message' ]:SetText( message )
-  self[ 'registry'][ 'stats' ][ 'message' ]:Show( )
 
-  local myTimer = C_Timer.NewTimer( 20, function( )
-    self[ 'registry'][ 'stats' ][ 'message' ]:Hide( )
-  end )
   self[ 'registry'][ 'stats' ][ 'vars_count' ]:SetText( vars_count )
   self[ 'registry'][ 'stats' ][ 'tracked_count' ]:SetText( tracked_count )
   self[ 'registry'][ 'stats' ][ 'locked_count' ]:SetText( self[ 'registry' ][ 'locked_count' ] )

@@ -78,6 +78,21 @@ function vars:warn( ... )
 
 end
 
+-- error message handler
+--
+-- returns void
+function vars:error( ... )
+
+  local prefix = CreateColor(
+    self[ 'theme' ][ 'error' ][ 'r' ], 
+    self[ 'theme' ][ 'error' ][ 'g' ], 
+    self[ 'theme' ][ 'error' ][ 'b' ] 
+  ):WrapTextInColorCode( self:GetName( ) )
+
+  self[ 'messenger' ]:AddMessage( string.join( ' ', prefix, ... ) )
+
+end
+
 -- persistence reference
 --
 -- returns table
@@ -233,9 +248,15 @@ end
 -- returns void
 function vars:applyDefaults( )
 
-  DEFAULT_CHAT_FRAME.editBox:SetText( '/cvar_reset' )
+  DEFAULT_CHAT_FRAME.editBox:SetText( '/console cvar_reset' )
   ChatEdit_SendText( DEFAULT_CHAT_FRAME.editBox, 0 )
-  --ConsoleExec( 'cvar_reset' )
+
+  local persistence = self:getNameSpace( )
+  persistence[ 'tracked' ] = { }
+  persistence[ 'vars' ] = { }
+
+  self:buildConfig( )
+  DEFAULT_CHAT_FRAME.editBox:SetText( '/reload' )
 
 end
 
