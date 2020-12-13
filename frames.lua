@@ -1,6 +1,6 @@
  -------------------------------------
 -- vars --------------
--- Emerald Dream/Grobbulus --------
+-- jadissa was here --------
 
 -- 
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )

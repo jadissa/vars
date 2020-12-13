@@ -1,6 +1,6 @@
  -------------------------------------
 -- vars --------------
--- Emerald Dream/Grobbulus --------
+-- jadissa was here --------
 
 -- 
 local utility   = LibStub:GetLibrary( 'utility' )

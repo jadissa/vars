@@ -1,7 +1,7 @@
  -------------------------------------
 -- vars --------------
--- Emerald Dream/Grobbulus --------
- 
+-- jadissa was here --------
+
 -- 
 local altered = false
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
@@ -330,6 +330,7 @@ function ui:createMenu( )
   -- GLARING BUG that causes key presses to lose focus
   self[ 'search']:SetScript( 'OnTextChanged', function( sbutton )
     if( strlen( sbutton:GetText( ) ) >= 3 ) then
+      sbutton.clearButton:Show( )
       persistence[ 'search' ][ 'text' ] = strlower( sbutton:GetText( ) )
       ui:iterateList( ui:filterList( ), 'search' )
     elseif( strlen( sbutton:GetText( ) ) == 0 ) then
@@ -342,9 +343,10 @@ function ui:createMenu( )
   end )
   self[ 'search'].clearButton:Hide( )
   self[ 'search'].clearButton:SetScript( 'OnClick', function( sbutton )
-    sbutton:SetText( '' )
-    self:iterateList( self:filterList( ) )
+    sbutton:Hide( )
+    self[ 'search']:SetText( '' )
     persistence[ 'search' ][ 'text' ] = nil
+    self:iterateList( self:filterList( ) )
   end )
 
   self[ 'search' ]:SetScript( 'OnEditFocusLost', function( sbutton )
