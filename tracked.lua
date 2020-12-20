@@ -94,7 +94,8 @@ function tracked:refreshConfig( ui_obj, changeset )
       updated = true
     end
     if ui_obj ~= nil then
-      ui_obj[ 'registry'][ changeset[ 'category' ] .. '|' .. changeset[ 'command' ] ] = nil
+      -- @todo: tremove() call needed to cause the ui registry a rebuild for this value
+      --ui_obj[ 'registry'][ changeset[ 'category' ] .. '|' .. changeset[ 'command' ] ] = nil
     end
     persistence[ changeset[ 'category' ] ][ changeset[ 'index' ] ][ 'tracked' ] = evaluation
 
