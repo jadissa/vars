@@ -75,7 +75,7 @@ end
 -- determine if an update is needed within the persistence
 --
 -- returns bool, table
-function tracked:refreshConfig( changeset )
+function tracked:refreshConfig( ui_obj, changeset )
 
   local persistence  	= self:getConfig( )
   local updated 		= false
@@ -83,22 +83,20 @@ function tracked:refreshConfig( changeset )
 
   if changeset ~= nil then
 
-  for category, category_rows in pairs( persistence ) do
-    if changeset[ category ] then
-      for i, row in pairs( category_rows ) do
-        if changeset[ category ][ i ] then
-          local updated_value = changeset[ category ][ i ][ row[ 'command' ] ]
-          local current_value = row[ 'value' ]
-          local evaluation 		= current_value ~= '' and strlower( tostring( updated_value ) ) ~= strlower( tostring( current_value ) )
-          if evaluation then
-            persistence[ category ][ i ][ 'value' ] = updated_value
-            updated = true
-          end
-          persistence[ category ][ i ][ 'tracked' ] = evaluation
-        end
-      end
+    local default_value = changeset[ 'default_value' ]  -- from changeset
+    local updated_value = changeset[ 'new_value' ]      -- from changeset
+
+    local current_value = changeset[ 'current_value' ]  -- from persistence
+
+    local evaluation    = current_value ~= '' and updated_value ~= default_value
+    if evaluation then
+      persistence[ changeset[ 'category' ] ][ changeset[ 'index' ] ][ 'info'][ 'value' ] = updated_value
+      updated = true
     end
-  end
+    if ui_obj ~= nil then
+      ui_obj[ 'registry'][ changeset[ 'category' ] .. '|' .. changeset[ 'command' ] ] = nil
+    end
+    persistence[ changeset[ 'category' ] ][ changeset[ 'index' ] ][ 'tracked' ] = evaluation
 
   end
 
@@ -112,15 +110,19 @@ end
 function tracked:queueConfig( category, var, value )
   
   local changeset = { }
-  local persistence = self:getNameSpace( )
   for cat, rows in pairs( self:getConfig( ) ) do
   	if category == cat then
   	  for i, row in pairs( rows ) do
   	  	if row[ 'command' ] == var then
-  	  	  changeset[ category ] = { }
-  	  	  changeset[ category ][ i ] = { }
-  	  	  changeset[ category ][ i ][ var ] = value
-  		    tracked:refreshConfig( changeset )
+
+          changeset = {
+            category = category,
+            index = i,
+            command = row[ 'command' ],
+            default_value = strlower( tostring( row[ 'info' ][ 'defaultValue' ] ) ),
+            current_value = strlower( tostring( row[ 'info' ][ 'value' ] ) ),
+            new_value = strlower( tostring( value ) ),
+          }
 		      if not tracked[ 'queue' ] then
 		  	    tracked[ 'queue' ] = { }
 		      end
@@ -138,14 +140,13 @@ end
 -- CVar and stats application
 --
 -- returns bool, number, string
-function tracked:applyConfig( category )
+function tracked:applyConfig( ui_obj, category )
 
   local is_tracked    = false
   local tracked_count = 0
   local message       = ''
   local updated       = false
   local known_vars    = self:getConfig( )
-  local can_update    = true
 
   -- determine how many are modified already
   for cat, rows in pairs( known_vars ) do
@@ -159,61 +160,36 @@ function tracked:applyConfig( category )
   end
 
   -- initialize changes
-  local changeset = {
-    current_value = nil,
-    default_value = nil,
-    new_value = nil,
-    index = nil,
-  }
-
-  -- file changes
-  for i, pending in pairs( tracked[ 'queue' ] ) do
-    for category, data in pairs( pending ) do
-      for j, setting in pairs( data ) do
-        for index, value in pairs( setting ) do
-          if known_vars[ category ][ j ] then
-            changeset[ 'current_value' ] = tostring( GetCVar( index ) )
-            changeset[ 'new_value' ] = tostring( value )
-            changeset[ 'index' ] = tostring( index )
-          end
-        end
-      end
-    end 
-  end
+  local changeset = tracked[ 'queue' ][ next( tracked[ 'queue' ] ) ]
 
   -- do not allow empty changes
-  for index, v in pairs( changeset ) do
-    if changeset[ index ] == nil then
-      can_update = false
-    end
-  end
-
-  if not can_update then
+  if changeset[ 'new_value' ] == nil then
     message = 'cannot update'
     vars:warn( message )
     return false, tracked_count, message
   end
 
   -- do not apply changes already applied
-  if strlower( changeset[ 'current_value' ] ) == strlower( changeset[ 'new_value' ] ) then
+  if changeset[ 'current_value' ] == changeset[ 'new_value' ] then
     message = 'already applied'
     vars:warn( message )
     return false, tracked_count, message
   end
 
   -- do not apply combat protected during combat
-  if tContains( vars:getProtected( 'combat' ), changeset[ 'index' ] ) ~= false and InCombatLockdown( ) == true then
-    message = changeset[ 'index' ] .. ' can only be modified outside of combat'
+  if tContains( vars:getProtected( 'combat' ), changeset[ 'command' ] ) ~= false and InCombatLockdown( ) == true then
+    message = changeset[ 'command' ] .. ' can only be modified outside of combat'
     vars:warn( message )
     return false, tracked_count, message
   end
 
   -- apply changes
-  vars:notify( 'updating ' .. changeset[ 'index' ] .. '...' )
-  SetCVar( changeset[ 'index' ], changeset[ 'new_value' ] )
+  vars:notify( 'updating ' .. changeset[ 'command' ] .. '...' )
+  SetCVar( changeset[ 'command' ], changeset[ 'new_value' ] )
+
 
   -- check for error
-  if GetCVar( changeset[ 'index' ] ) ~= changeset[ 'new_value' ] then
+  if strlower( tostring( GetCVar( changeset[ 'command' ] ) ) ) ~= changeset[ 'new_value' ] then
     message = 'failed'
     vars:error( message )
     return false, tracked_count, message
@@ -221,23 +197,9 @@ function tracked:applyConfig( category )
 
   -- maintenance
   updated = true
-  local new_config = { }
-  for cat, rows in pairs( self:getConfig( ) ) do
-    if category == cat then
-      for i, row in pairs( rows ) do
-        if row[ 'command' ] == changeset[ 'index' ] then
-          new_config[ category ] = { }
-          new_config[ category ][ i ] = { }
-          new_config[ category ][ i ][ changeset[ 'index' ] ] = changeset[ 'new_value' ]
-          is_tracked = row[ 'tracked' ]
-          tracked:refreshConfig( new_config )
-        end
-      end
-    end
-  end
-  changeset[ 'default_value' ] = GetCVarDefault( changeset[ 'index' ] )
+  tracked:refreshConfig( ui_obj, changeset )
 
-  local new_value_not_default = strlower( changeset[ 'new_value' ] ) ~= strlower( tostring( changeset[ 'default_value' ] ) )
+  local new_value_not_default = changeset[ 'new_value' ] ~= changeset[ 'default_value' ]
   if new_value_not_default == true and is_tracked == false then
     tracked_count = tracked_count + 1
   elseif new_value_not_default == false and is_tracked == true then

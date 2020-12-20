@@ -106,7 +106,7 @@ function ui:filterList( )
         local s     = strlower( row[ 'command' ] )
 
         --[[
-        if s == 'mousespeed' then
+        if s == 'cameradistancemaxzoomfactor' then
 
           utility:dump( row )
 
@@ -164,12 +164,12 @@ function ui:iterateList( list, c_type )
 
       if type( row ) == 'table' then
 
-        if ui[ 'registry'][ category .. '|' .. row[ 'command' ] ] == nil then
+        if ui[ 'registry' ][ category .. '|' .. row[ 'command' ] ] == nil then
           local locked = false
           local theme = 'text'
           if row[ 'tracked' ] then
             theme = 'info'
-          elseif row['info']['readOnly'] then
+          elseif row[ 'info' ][ 'readOnly' ] then
             theme = 'error'
             locked = true
           end
@@ -198,7 +198,7 @@ function ui:iterateList( list, c_type )
           local s = frames:createSeperator( self[ 'menu' ][ 'containers' ][ 1 ] )
           s:SetPoint( 'topleft', c, 'bottomleft', 10, 0, 0 )
 
-          local v = frames:createEditBox( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'value' ], nil, theme )
+          local v = frames:createEditBox( self[ 'menu' ][ 'containers' ][ 1 ], row[ 'info' ][ 'value' ], nil, theme )
           v[ 'v_identifier' ] = category .. '|' .. row[ 'command' ]
           v[ 'v_value' ]      = row[ 'value' ]
           --v:SetCursorPosition( 0 )
@@ -615,7 +615,7 @@ function ui:updateConfig( f, cvar_category, cvar_name, cvar_value )
 
   tracked:queueConfig( cvar_category, cvar_name, cvar_value )
 
-  local updated, tracked_count, message = tracked:applyConfig( cvar_category )
+  local updated, tracked_count, message = tracked:applyConfig( ui, cvar_category )
   self[ 'registry' ][ 'tracked_count' ] = tracked_count
   if updated then
     altered = true

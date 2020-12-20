@@ -178,7 +178,7 @@ function vars:getProtected( ptype )
   end
 
 end
-
+-- /script print( GetCVar( 'cameradistancemaxzoomfactor' ) );
 -- initialize config
 --
 -- returns table
@@ -204,6 +204,18 @@ function vars:buildConfig( )
       local default_value = strlower( tostring( defaultValue ) )
       local current_value = strlower( tostring( value ) )
       local evaluation    = default_value ~= '' and current_value ~= default_value
+
+      --[[
+      if( strlower( row['command'] ) == 'cameradistancemaxzoomfactor' ) then
+
+        utility:dump( {
+          default_value = default_value,
+          current_value = current_value,
+          readOnly = readOnly,
+          evaluation = evaluation,
+        } );
+      end
+      ]]
 
       tinsert( persistence[ 'vars' ][ category ], { 
         help            = row['help'],
