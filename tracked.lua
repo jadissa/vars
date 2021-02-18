@@ -80,7 +80,7 @@ function tracked:refreshConfig( ui_obj, changeset )
   local persistence  	= self:getConfig( )
   local updated 		= false
   --self:_geParenttDB( ):ResetDB( )
-
+  
   if changeset ~= nil then
 
     local default_value = changeset[ 'default_value' ]  -- from changeset
@@ -88,7 +88,7 @@ function tracked:refreshConfig( ui_obj, changeset )
 
     local current_value = changeset[ 'current_value' ]  -- from persistence
 
-    local evaluation    = current_value ~= '' and updated_value ~= default_value
+    local evaluation    = current_value ~= '' and current_value ~= updated_value
     if evaluation then
       persistence[ changeset[ 'category' ] ][ changeset[ 'index' ] ][ 'info'][ 'value' ] = updated_value
       updated = true
@@ -198,7 +198,7 @@ function tracked:applyConfig( ui_obj, category )
 
   -- maintenance
   updated = true
-  tracked:refreshConfig( ui_obj, changeset )
+  self:refreshConfig( ui_obj, changeset )
 
   local new_value_not_default = changeset[ 'new_value' ] ~= changeset[ 'default_value' ]
   if new_value_not_default == true and is_tracked == false then
@@ -207,7 +207,7 @@ function tracked:applyConfig( ui_obj, category )
     tracked_count = tracked_count - 1
   end
   vars:notify( 'updated from: ' .. changeset[ 'current_value' ] .. ' to: ' .. changeset[ 'new_value' ] )
-  tracked[ 'queue' ] = { }
+  self[ 'queue' ] = { }
   local persistence = self:getNameSpace( )
   if persistence[ 'options' ][ 'reloadgx' ] and updated then 
   	RestartGx( )
