@@ -170,13 +170,6 @@ function tracked:applyConfig( ui_obj, category )
     return false, tracked_count, message
   end
 
-  -- do not apply changes already applied
-  if changeset[ 'current_value' ] == changeset[ 'new_value' ] then
-    message = 'already applied'
-    vars:warn( message )
-    return false, tracked_count, message
-  end
-
   -- do not apply combat protected during combat
   if tContains( vars:getProtected( 'combat' ), changeset[ 'command' ] ) ~= false and InCombatLockdown( ) == true then
     message = changeset[ 'command' ] .. ' can only be modified outside of combat'
