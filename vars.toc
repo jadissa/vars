@@ -15,7 +15,7 @@
 ## Interface: 90001
 #@end-retail@
 #@non-retail@
-## Interface: 11305
+## Interface: 20501
 #/run print((select(4, GetBuildInfo())));
 #@end-non-retail@
 
