@@ -100,19 +100,23 @@ function ui:filterList( )
     var_names     = frames:sort( data, persistence[ 'search' ][ 'sort_direction' ] )
   end
 
+  -- filtered list
   if search_string ~= nil then
     for category, category_data in pairs( var_names ) do
       for o, row in pairs( category_data ) do
         local s     = strlower( row[ 'command' ] )
 
+        local registry = ui[ 'registry'][ category .. '|' .. row[ 'command' ] ]
+        local help = nil
         --[[
-        if s == 'cameradistancemaxzoomfactor' then
+        if s == 'ejlootspec' then
 
-          utility:dump( row )
+          --utility:dump( row )
 
         end
         ]]
 
+        --  within command
         local i, j  = string.find( s, search_string )
         if( i ~= nil and i > 0 ) and ( j ~= nil and j > 0 ) then
           if t[ category ] == nil then
@@ -120,12 +124,25 @@ function ui:filterList( )
           end
           t[ category ][ o ] = row
         end
+        
+        --  within help text
+        if( registry and registry.help and registry.help.d_value ) then
+          local s     = strlower( registry.help.d_value )
+          local i, j  = string.find( s, search_string )
+          if( i ~= nil and i > 0 ) and ( j ~= nil and j > 0 ) then
+            if t[ category ] == nil then
+              t[ category ] = { }
+            end
+            t[ category ][ o ] = row
+          end
+        end
+
       end
     end
-
     return t
   end
 
+  -- reminder of list
   for o, var_name in pairs( var_names ) do
     for cat, category_data in pairs( tracked:getConfig( ) ) do
       if cat == category then
