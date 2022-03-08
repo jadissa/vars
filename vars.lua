@@ -1,6 +1,6 @@
  -------------------------------------
 -- vars --------------
--- jadissa was here --------
+-- Vars Configuration --------
 
 -- 
 local utility   = LibStub:GetLibrary( 'utility' )

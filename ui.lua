@@ -1,6 +1,6 @@
  -------------------------------------
 -- vars --------------
--- jadissa was here --------
+-- Vars Interface --------
 
 -- 
 local altered = false
@@ -11,6 +11,7 @@ local frame = nil
 local list = { } 
 
 local utility = LibStub:GetLibrary( 'utility' )
+local classic_wow = ( WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE )
 
 -- setup addon
 --
@@ -339,10 +340,17 @@ function ui:createMenu( )
   local frames = vars:GetModule( 'frames' )
   self[ 'menu' ] = self[ 'menu' ] or frames:bootUI( )
   tinsert( UISpecialFrames, self[ 'menu' ]:GetName( ) )
+
+  
+  self[ 'search' ] = frames:createSearchbox( self[ 'menu' ][ 'controls' ], '', 'search_box' )
+  self[ 'search' ]:SetPoint( 'topleft', self[ 'menu' ][ 'controls' ], 'topleft', 10, -5 )
+  
+  --[[
   self[ 'search'] = frames:createFrame( 'EditBox', 'search_box', self[ 'menu' ][ 'controls' ], 'BagSearchBoxTemplate' )
   self[ 'search']:SetSize( 100, 25 )
   --self[ 'search']:SetBackdropColor( 0, 1, 0, .9 )  
   self[ 'search']:SetPoint( 'topleft', self[ 'menu' ][ 'controls' ], 'topleft', 100, -14 )
+  ]]
 
   -- GLARING BUG that causes key presses to lose focus
   self[ 'search']:SetScript( 'OnTextChanged', function( sbutton )

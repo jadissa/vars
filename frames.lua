@@ -1,6 +1,6 @@
  -------------------------------------
 -- vars --------------
--- jadissa was here --------
+-- Vars Frames --------
 
 -- 
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
@@ -53,7 +53,7 @@ function frames:bootUI( )
 
   local f = self:createFrame( 'Frame', vars:GetName( ) .. 'Main', UIParent, 'UIPanelDialogTemplate' )
 
-  f:SetFrameStrata( 'HIGH' )
+  f:SetFrameStrata( 'TOOLTIP' )
   
   --f:SetFrameLevel( )
   f:SetClampedToScreen( true )
@@ -133,7 +133,7 @@ function frames:bootUI( )
   end )
 
   f[ 'controls' ] = self:createFrame( 'Frame', 'controls', f )
-  f[ 'controls' ]:SetSize( f:GetWidth( ) - 20, 45 )
+  f[ 'controls' ]:SetSize( f:GetWidth( ) - 20, 35 )
   f[ 'controls' ]:SetPoint( 'topleft', f[ 'titlearea' ], 'topleft', 10, -( f[ 'titlearea' ]:GetHeight( ) + 2 ) )
   local t = f:CreateTexture( nil, 'ARTWORK', nil, 0 )
   t:SetTexture( 'Interface\\Addons\\vars\\textures\\frame' )
@@ -151,7 +151,7 @@ function frames:bootUI( )
   f[ 'browser' ]:SetSize( 
     f:GetWidth( ) - 20, 
     ( 
-      f:GetHeight( ) - ( f[ 'titlearea' ]:GetHeight( ) + f[ 'controls' ]:GetHeight( ) )
+      f:GetHeight( ) - ( f[ 'titlearea' ]:GetHeight( ) + f[ 'controls' ]:GetHeight( ) + t:GetHeight() )
     ) - 8 
   )
   f[ 'browser' ]:SetPoint( 'topleft', f[ 'controls' ], 'bottomleft', 0, -10 )
@@ -258,7 +258,7 @@ function frames:createCheckbox( f, text, name )
   if name == nil then name = random( 0, 9999 ) end
   local c = self:createFrame( 'CheckButton', name, f, 'UICheckButtonTemplate' )
   c:SetNormalTexture( 'Interface\\Buttons\\UI-Button-Outline' )
-  c:SetPushedTexture( 'Interface\\Buttons\\UI-CheckBox-Down' )
+  --c:SetPushedTexture( 'Interface\\Buttons\\UI-CheckBox-Down' )
   c:SetHighlightTexture( 'Interface\\Buttons\\CheckButtonHilight-Blue' )
   c:SetCheckedTexture( 'Interface\\Buttons\\UI-CheckBox-Check' )
   c:SetDisabledTexture( 'Interface\\Buttons\\UI-CheckBox-Check-Disabled' )
@@ -267,6 +267,59 @@ function frames:createCheckbox( f, text, name )
   c[ 'text' ]:SetPoint( 'topleft', c, 'topright', 1, -6 )
 
   --c:SetChecked( true )
+
+  return c
+
+end
+
+function frames:createSearchbox( f, text, name )
+
+  if name == nil then name = random( 0, 9999 ) end
+  local c = self:createFrame( 'EditBox', name, f, 'SearchBoxTemplate' )
+
+  c:SetSize( 100, 25 )
+
+  c.Left:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGLeft-min' )
+  --c.Left:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-left-input' )
+  c.Middle:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGMid-min' )
+  --c.Middle:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-mid-input' )
+  c.Right:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGRight-min' )
+  --c.Right:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-right-input' )
+
+  c:SetAutoFocus(false)
+  c:SetMaxLetters(50)
+
+  c:SetScript( 'OnEditFocusGained', function( self )
+    --self.Left:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-left-input' )
+    self.Left:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGLeft-min' )
+    --self.Middle:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-mid-input' )
+    self.Middle:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGMid-min' )
+    --self.Right:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-right-input' )
+    self.Right:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGRight-min' )
+  end )
+
+  c:SetScript( 'OnEditFocusLost', function( self )
+    --self.Left:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-left-input' )
+    self.Left:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGLeft-min' )
+    --self.Middle:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-mid-input' )
+    self.Middle:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGMid-min' )
+    --self.Right:SetTexture( 'Interface\\Addons\\vars\\textures\\normal-right-input' )
+    self.Right:SetTexture( 'Interface\\Chatframe\\ChatFrameTab-BGRight-min' )
+  end )
+
+  c:SetScript( 'OnEscapePressed', function( self )
+    EditBox_ClearFocus( self )
+    if( self.clearButton ) then
+      self.clearButton:Click();
+    end
+    if( self.Instructions ) then
+      self.Instructions:Show();
+    end
+  end )
+
+  c:SetScript( 'OnEnterPressed', function( self ) end )
+  c:SetScript( 'OnTextChanged', function( self ) end )
+  c:SetScript( 'OnLoad', function( self ) end )
 
   return c
 

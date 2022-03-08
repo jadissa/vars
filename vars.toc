@@ -3,7 +3,6 @@
 ## X-Category: System
 
 ## Author: jadissa
-## X-Realm: Emerald Dream/Grobbulus
 ## X-Website: https://github.com/jadissa/vars
 ## X-License: All rights reserved
 ## X-Curse-Project-ID: 379096
@@ -12,10 +11,10 @@
 ## SavedVariables: persistence
 
 #@retail@
-## Interface: 90001
+## Interface: 90200
 #@end-retail@
 #@non-retail@
-## Interface: 20501
+## Interface: 20502
 #/run print((select(4, GetBuildInfo())));
 #@end-non-retail@
 

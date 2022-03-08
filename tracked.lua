@@ -1,6 +1,6 @@
  -------------------------------------
 -- vars --------------
--- jadissa was here --------
+-- Vars Tracking --------
 
 -- 
 local vars = LibStub( 'AceAddon-3.0' ):GetAddon( 'vars' )
