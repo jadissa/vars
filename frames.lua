@@ -53,7 +53,7 @@ function frames:bootUI( )
 
   local f = self:createFrame( 'Frame', vars:GetName( ) .. 'Main', UIParent, 'UIPanelDialogTemplate' )
 
-  f:SetFrameStrata( 'TOOLTIP' )
+  f:SetFrameStrata( 'HIGH' )
   
   --f:SetFrameLevel( )
   f:SetClampedToScreen( true )
